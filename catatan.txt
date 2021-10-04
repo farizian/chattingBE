@@ -1,0 +1,5 @@
+socket.on => listener / penerima
+io.emit => emiter / pengirim
+socket.broadcast.emit => mengirim ke semua, kecuali si pengirim
+socket.join => masuk ke room
+io.to(nama room).emit => mengirim ke semua client yang sudah join room
