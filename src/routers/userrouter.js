@@ -14,6 +14,7 @@ userrouter
   .post('/login', userctrl.login)
   .post('/register', userctrl.register)
   .delete('/user/:id', midAuth, userctrl.del)
-  .put('/user/:id', midAuth, upload, userctrl.update);
+  .put('/user/:id', midAuth, upload, userctrl.update)
+  .put('/userpw/:id', midAuth, upload, userctrl.updatePw);
 
 module.exports = userrouter;

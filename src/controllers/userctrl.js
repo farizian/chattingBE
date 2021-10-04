@@ -164,6 +164,22 @@ const userctrl = {
       failed(res, 404, err);
     }
   },
+  updatePw: (req, res) => {
+    try {
+      const { body } = req;
+      const { id } = req.params;
+      const pw = bcrypt.hashSync(body.password, 10);
+      models.updatePw(id, pw)
+        .then((result) => {
+          success(res, result, 'Update Password Data Success');
+        })
+        .catch((err) => {
+          failed(res, 400, err);
+        });
+    } catch (err) {
+      failed(res, 500, err);
+    }
+  },
   update: async (req, res) => {
     try {
       const { body } = req;
@@ -171,9 +187,8 @@ const userctrl = {
       const imgName = await models.getimg(id);
       const imgPath = `./src/img/${imgName[0].img}`;
       const img = !req.file ? imgName[0].img : req.file.filename;
-      const pw = bcrypt.hashSync(body.password, 10);
       if (!req.file) {
-        models.update(id, img, body, pw)
+        models.update(id, img, body)
           .then((result) => {
             success(res, result, 'Update User Data Success');
           })
@@ -183,7 +198,7 @@ const userctrl = {
       } else {
         fs.unlink(imgPath, ((errImg) => {
           if (errImg) {
-            models.update(id, img, body, pw)
+            models.update(id, img, body)
               .then((result) => {
                 success(res, result, 'Update User Data Success');
               })
@@ -191,7 +206,7 @@ const userctrl = {
                 failed(res, 400, err);
               });
           } else {
-            models.update(id, img, body, pw)
+            models.update(id, img, body)
               .then((result) => {
                 success(res, result, 'Update User Data Success');
               })
