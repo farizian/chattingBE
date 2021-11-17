@@ -8,13 +8,14 @@ const upload = require('../middleware/upload');
 const userrouter = express.Router();
 userrouter
   .get('/user', userctrl.getlist)
-  .get('/userdetails', midAuth, userctrl.getdetail)
-  .get('/detailbyname/:username', userctrl.detailByName)
+  .get('/mydetails', midAuth, userctrl.getdetail)
+  .get('/detail/:id', userctrl.detailById)
   .post('/user', upload, userctrl.insert)
   .post('/login', userctrl.login)
   .post('/register', userctrl.register)
   .delete('/user/:id', midAuth, userctrl.del)
-  .put('/user/:id', midAuth, upload, userctrl.update)
-  .put('/userpw/:id', midAuth, upload, userctrl.updatePw);
+  .put('/user', midAuth, upload, userctrl.update)
+  .put('/useremail', midAuth, userctrl.updateEmail)
+  .put('/userpw', midAuth, userctrl.updatePw);
 
 module.exports = userrouter;

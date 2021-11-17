@@ -11,6 +11,18 @@ const multerImg = multer({
       cb(null, `${Math.round(Math.random() * 1E9)}${ext}`);
     },
   }),
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    if (ext === '.jpg' || ext === '.png' || ext === '.jpeg') {
+      cb(null, true);
+    } else {
+      const error = {
+        message: 'Wrong File type',
+      };
+      cb(error, false);
+    }
+  },
+  limits: { fileSize: 5 * 1000 },
 });
 
 const upload = (req, res, next) => {

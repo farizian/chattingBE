@@ -52,10 +52,10 @@ const userctrl = {
       failed(res, 401, err);
     }
   },
-  detailByName: (req, res) => {
+  detailById: (req, res) => {
     try {
-      const { username } = req.params; // url parameter untuk mengambil id
-      models.detailByName(username).then((result) => {
+      const { id } = req.params; // url parameter untuk mengambil id
+      models.getdetail(id).then((result) => {
         success(res, result, 'get user details success');
       })
         .catch((err) => {
@@ -114,24 +114,29 @@ const userctrl = {
   register: (req, res) => {
     try {
       const { body } = req;
+      const { email } = body;
       const img = 'default.png';
       models.checkregister(body).then((result) => {
         if (result[0].email) {
           failed(res, 401, 'email sudah digunakan');
         }
       }).catch(() => {
-        bcrypt.hash(body.password, 10, (err, hash) => {
+        if (!email || !body.password) {
+          failed(res, 401, 'harap masukkan email/password anda');
+        } else {
+          bcrypt.hash(body.password, 10, (err, hash) => {
           // Store hash in your password DB.
-          if (err) {
-            failed(res, 401, err);
-          } else {
-            models.register(body, hash, img).then((result2) => {
-              success(res, result2);
-            }).catch((err1) => {
-              failed(res, 401, err1);
-            });
-          }
-        });
+            if (err) {
+              failed(res, 401, err);
+            } else {
+              models.register(body, hash, img).then((result2) => {
+                success(res, result2);
+              }).catch((err1) => {
+                failed(res, 401, err1);
+              });
+            }
+          });
+        }
       });
     } catch (error) {
       failed(res, 401, error);
@@ -164,30 +169,64 @@ const userctrl = {
       failed(res, 404, err);
     }
   },
-  updatePw: (req, res) => {
+  updatePw: async (req, res) => {
     try {
       const { body } = req;
-      const { id } = req.params;
-      const pw = bcrypt.hashSync(body.password, 10);
-      models.updatePw(id, pw)
+      const id = req.userId;
+      const detail = await models.getdetail(id);
+      const oldPwHash = detail[0].password;
+      bcrypt.compare(body.oldpassword, oldPwHash, (error, checkpw) => {
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.log(error);
+        } else if (checkpw === true) {
+          const pw = bcrypt.hashSync(body.password, 10);
+          models.updatePw(id, pw)
+            .then((result) => {
+              success(res, result, 'Update Password Success');
+            })
+            .catch((err) => {
+              failed(res, 400, err);
+            });
+        } else {
+          failed(res.status(404), 404, 'Wrong Password');
+        }
+      });
+    } catch (error) {
+      failed(res, 500, error);
+    }
+  },
+  updateEmail: (req, res) => {
+    try {
+      const { body } = req;
+      const id = req.userId;
+      models.updateEmail(id, body.email)
         .then((result) => {
-          success(res, result, 'Update Password Data Success');
+          success(res, result, 'Update Email Success');
         })
         .catch((err) => {
           failed(res, 400, err);
         });
-    } catch (err) {
-      failed(res, 500, err);
+    } catch (error) {
+      failed(res, 500, error);
     }
   },
   update: async (req, res) => {
     try {
       const { body } = req;
-      const { id } = req.params;
+      const id = req.userId;
       const imgName = await models.getimg(id);
       const imgPath = `./src/img/${imgName[0].img}`;
       const img = !req.file ? imgName[0].img : req.file.filename;
       if (!req.file) {
+        models.update(id, img, body)
+          .then((result) => {
+            success(res, result, 'Update User Data Success');
+          })
+          .catch((err) => {
+            failed(res, 400, err);
+          });
+      } else if (imgName[0].img === 'default.png') {
         models.update(id, img, body)
           .then((result) => {
             success(res, result, 'Update User Data Success');

@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable no-console */
 const express = require('express');
 const cors = require('cors');
@@ -23,32 +24,84 @@ const io = new Server(httpServer, {
     origin: '*',
   },
 });
+let userOn = [];
 io.on('connection', (socket) => {
   console.log('a client connected');
+  socket.on('login', (room) => {
+    console.log(`a user joined to room ${room}`);
+    socket.join(room);
+  });
+
+  socket.on('broadcast', (id) => {
+    userOn.push(id);
+    socket.broadcast.emit('get-online-broadcast', userOn);
+  });
+
+  socket.on('send-message', (payload) => {
+    const { receiver } = payload;
+    console.log(payload);
+    models.insert(payload).then(() => {
+      io.to(receiver).emit('list-message', payload);
+    }).catch((err) => {
+      console.log(err);
+    });
+  });
+
   // menerima request send-message
   socket.on('get-message', ({ sender, receiver }) => {
+    // console.log(sender);
+    // console.log(receiver);
     models.getmsg(sender, receiver).then((result) => {
       io.to(sender).emit('history-messages', result);
     }).catch((err) => {
       console.log(err);
     });
   });
-  socket.on('login', (room) => {
-    console.log(`a user joined to room ${room}`);
-    socket.join(room);
+
+  socket.on('deleteMessage', async (payload) => {
+    const { idMsg, sender, receiver } = payload;
+    const data = await models.getmsg(sender, receiver);
+    const { id } = data.pop();
+    if (idMsg) {
+      models.delMsg(idMsg)
+        .then(() => {
+          models.getmsg(sender, receiver)
+            .then((result) => {
+              io.to(sender).emit('history-messages', result);
+              io.to(receiver).emit('history-messages', result);
+            }).catch((err) => {
+              console.log(err);
+            });
+        });
+    } else {
+      models.delMsg(id)
+        .then(() => {
+          models.getmsg(sender, receiver)
+            .then((result) => {
+              io.to(sender).emit('history-messages', result);
+              io.to(receiver).emit('history-messages', result);
+            }).catch((err) => {
+              console.log(err);
+            });
+        });
+    }
   });
-  socket.on('send-message', (payload) => {
-    const { sender, receiver, msg } = payload;
-    models.insert(sender, receiver, msg).then(() => {
-      io.to(receiver).emit('list-message', payload);
-    }).catch((err) => {
-      console.log(err);
+  socket.on('offline', (id) => {
+    // eslint-disable-next-line consistent-return
+    const newOn = userOn.filter((e) => {
+      if (e !== id) {
+        console.log(e);
+        return e;
+      }
     });
+    userOn = newOn;
+    socket.emit('broadcast', userOn);
   });
   socket.on('disconnect', () => {
     console.log('a client disconnected');
   });
 });
+
 const PORT = 5000;
 httpServer.listen(PORT, () => {
   console.log(`service running on port ${PORT}`);

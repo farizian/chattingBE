@@ -84,7 +84,7 @@ const usermodel = {
     const {
       username, email, phone, tag,
     } = body;
-    db.query(`insert into user (img, username, email, password, phone_number, tag_name) value ('${img}', '${username}', '${email}', '${password}', '${phone}', '${tag}')`, (err, result) => {
+    db.query(`insert into user (img, username, email, password, phone, tagName) value ('${img}', '${username}', '${email}', '${password}', '${phone}', '${tag}')`, (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -110,11 +110,20 @@ const usermodel = {
       }
     });
   }),
+  updateEmail: (id, email) => new Promise((resolve, reject) => {
+    db.query(`update user set email="${email}" where id="${id}"`, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  }),
   update: (id, img, body) => new Promise((resolve, reject) => {
     const {
-      username, phone, tag, bio,
+      username, phone, tagName, bio,
     } = body;
-    db.query(`update user set img="${img}", username="${username}", phone_number="${phone}", tag_name="${tag}", bio="${bio}" where id="${id}"`, (err, result) => {
+    db.query(`update user set img="${img}", username="${username}", phone="${phone}", tagName="${tagName}", bio="${bio}" where id="${id}"`, (err, result) => {
       if (err) {
         reject(err);
       } else {
