@@ -7,7 +7,7 @@ const data = mysql.createConnection({
   host: env.host,
   user: env.db_username,
   password: env.db_password,
-  database: 'chatting',
+  database: env.database,
 });
 // mengekspor koneksi db
 data.connect((err) => {
