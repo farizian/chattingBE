@@ -4,8 +4,9 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const bodyParser = require('body-parser');
-// const io = require('./src/helper/socket');
 const { Server } = require('socket.io');
+const { port } = require('./src/helper/env');
+// const io = require('./src/helper/socket');
 const models = require('./src/models/messagemodel');
 const userrouter = require('./src/routers/userrouter');
 
@@ -102,7 +103,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = 5000;
+const PORT = port || 5000;
 httpServer.listen(PORT, () => {
   console.log(`service running on port ${PORT}`);
 });
