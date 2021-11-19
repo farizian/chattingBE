@@ -18,7 +18,7 @@ const messagemodel = {
       m.receiver, receiver.username, receiver.img, m.text_msg,
       m.created FROM message as m
       left join user as sender on m.sender = sender.id
-      left join user as receiver on m.receiver = receiver.id  WHERE (sender =${sender} AND receiver = ${receiver}) OR (sender=${receiver} AND receiver=${sender})`,
+      left join user as receiver on m.receiver = receiver.id  WHERE (sender =${sender} AND receiver = ${receiver}) OR (sender=${receiver} AND receiver=${sender}) order by id asc`,
       (err, result) => {
         if (err) {
           // console.log(err)
