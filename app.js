@@ -96,7 +96,7 @@ io.on('connection', (socket) => {
       }
     });
     userOn = newOn;
-    socket.emit('broadcast', userOn);
+    socket.emit('get-online-broadcast', userOn);
   });
   socket.on('disconnect', () => {
     console.log('a client disconnected');
